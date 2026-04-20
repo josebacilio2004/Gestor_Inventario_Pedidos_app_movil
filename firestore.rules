@@ -1,0 +1,38 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Permitir acceso a roles específicos almacenados en el documento del usuario
+    function hasRole(role) {
+      return request.auth != null && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == role;
+    }
+
+    match /users/{userId} {
+      allow read: if request.auth != null && (request.auth.uid == userId || hasRole('admin'));
+      allow write: if hasRole('admin');
+    }
+
+    match /productos/{productId} {
+      allow read: if request.auth != null;
+      allow write: if hasRole('admin');
+    }
+
+    match /pedidos/{pedidoId} {
+      allow read: if request.auth != null && (
+        hasRole('admin') || 
+        resource.data.inversionistaId == request.auth.uid || 
+        resource.data.compradorId == request.auth.uid
+      );
+      allow write: if hasRole('admin') || (
+        request.auth != null && 
+        hasRole('comprador') && 
+        request.resource.data.compradorId == request.auth.uid
+      );
+    }
+
+    match /pagos_capital/{pagoId} {
+      allow read: if request.auth != null;
+      allow write: if hasRole('admin') || hasRole('comprador');
+    }
+  }
+}

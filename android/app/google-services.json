@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "679642292116",
+    "project_id": "gestor-inv-2604190050",
+    "storage_bucket": "gestor-inv-2604190050.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:679642292116:android:57520c569df34b6548f981",
+        "android_client_info": {
+          "package_name": "com.jose.stitch.stitch_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAdAmMAxzo3CIUt4coTeRlS-Jll9clfSek"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

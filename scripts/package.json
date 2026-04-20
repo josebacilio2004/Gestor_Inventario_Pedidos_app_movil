@@ -1,0 +1,10 @@
+{
+  "name": "migration-tool",
+  "version": "1.0.0",
+  "main": "migrate_neon.js",
+  "dependencies": {
+    "firebase-admin": "^11.11.0",
+    "pg": "^8.11.3",
+    "dotenv": "^16.3.1"
+  }
+}
