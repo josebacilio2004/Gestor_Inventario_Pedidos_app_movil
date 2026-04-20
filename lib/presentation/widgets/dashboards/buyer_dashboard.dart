@@ -174,7 +174,7 @@ class BuyerDashboard extends ConsumerWidget {
   }
 
   Widget _buildDistributorSelection(WidgetRef ref) {
-    final distributorsAsync = ref.watch(distributorsProvider);
+    final distributorsAsync = ref.watch(distributorsFutureProvider);
     
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       _buildSectionHeader('📄 FACTURACIONES', 'Selecciona el distribuidor para ver sus saldos'),
@@ -189,8 +189,8 @@ class BuyerDashboard extends ConsumerWidget {
           childAspectRatio: 1.8,
           children: distributors.map((d) => _distributorCard(
             ref, 
-            d.nombre, 
-            d.id,
+            d['nombre'] ?? d.toString(), 
+            d['id'] ?? 0,
             Icons.business_outlined
           )).toList(),
         ),
@@ -377,6 +377,15 @@ class BuyerDashboard extends ConsumerWidget {
             child: const Text('ENVIAR'),
           ),
         ],
+      ),
+    );
+  }
+
+  void _showCreateSaleDialog(BuildContext context, WidgetRef ref) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => CreateWholesaleSaleScreen(compradorId: profile['id']),
       ),
     );
   }

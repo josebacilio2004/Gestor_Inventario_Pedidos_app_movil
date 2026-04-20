@@ -88,7 +88,7 @@ class _CreateWholesaleSaleScreenState extends ConsumerState<CreateWholesaleSaleS
     final stockAsync = ref.watch(mayoristaStockProvider);
 
     return Scaffold(
-      backgroundColor: AppTheme.backgroundColor,
+      backgroundColor: AppTheme.primaryDark,
       appBar: AppBar(
         title: const Text('NUEVA VENTA MAYORISTA', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
         backgroundColor: Colors.transparent,
@@ -168,7 +168,7 @@ class _CreateWholesaleSaleScreenState extends ConsumerState<CreateWholesaleSaleS
                     ))
                   else
                     ...cart.map((item) => Container(
-                      margin: const EdgeInsets.bottom(12),
+                      margin: const EdgeInsets.only(bottom: 12),
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(color: AppTheme.surfaceDark, borderRadius: BorderRadius.circular(12)),
                       child: Row(

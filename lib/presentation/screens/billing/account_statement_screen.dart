@@ -32,7 +32,7 @@ class _AccountStatementScreenState extends ConsumerState<AccountStatementScreen>
     }));
 
     return Scaffold(
-      backgroundColor: AppTheme.backgroundColor,
+      backgroundColor: AppTheme.primaryDark,
       appBar: AppBar(
         title: Text('ESTADO: ${widget.distribuidorNombre}', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14)),
         backgroundColor: Colors.transparent,
@@ -72,7 +72,7 @@ class _AccountStatementScreenState extends ConsumerState<AccountStatementScreen>
               final dias = parseIntSafe(f['dias_vencido']);
 
               return Container(
-                margin: const EdgeInsets.bottom(12),
+                margin: const EdgeInsets.only(bottom: 12),
                 decoration: BoxDecoration(
                   color: AppTheme.surfaceDark,
                   borderRadius: BorderRadius.circular(12),
