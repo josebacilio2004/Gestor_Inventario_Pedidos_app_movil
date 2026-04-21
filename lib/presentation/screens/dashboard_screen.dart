@@ -56,9 +56,11 @@ class DashboardScreen extends ConsumerWidget {
             ),
           ],
         ),
-        backgroundColor: Colors.transparent,
+        backgroundColor: AppTheme.surfaceDark,
         elevation: 0,
-        iconTheme: const IconThemeData(color: AppTheme.accentOrange),
+        shape: Border(bottom: BorderSide(color: Colors.white.withOpacity(0.05), width: 1)),
+        centerTitle: false,
+        iconTheme: const IconThemeData(color: AppTheme.accentOrange, size: 28),
         actions: [
           IconButton(
             onPressed: () {},
