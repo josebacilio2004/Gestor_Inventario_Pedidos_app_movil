@@ -46,10 +46,10 @@ final investorsFutureProvider = FutureProvider<List<Map<String, dynamic>>>((ref)
   return await api.getInversionistas();
 });
 
-// --- PROVIDER PARA PEDIDOS ---
+// --- PROVIDER PARA PEDIDOS (Inversionista) ---
 final ordersFutureProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
   final api = ref.watch(apiServiceProvider);
-  final response = await api.get('/pedidos-herramientas');
+  final response = await api.get('/pedidos');
   return List<Map<String, dynamic>>.from(response.data);
 });
 

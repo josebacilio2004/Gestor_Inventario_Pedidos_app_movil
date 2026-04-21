@@ -25,22 +25,27 @@ class _CreateWholesaleSaleScreenState extends ConsumerState<CreateWholesaleSaleS
     setState(() {
       final existing = cart.indexWhere((i) => i.tipo == stock.tipo && i.marca == stock.marca);
       if (existing != -1) {
-        if (cart[existing].cantidad < stock.disponible) {
-          cart[existing].cantidad++;
+        if (int.parse(cart[existing].qtyController.text) < stock.disponible) {
+          final newQty = int.parse(cart[existing].qtyController.text) + 1;
+          cart[existing].qtyController.text = newQty.toString();
         }
       } else {
         cart.add(CartItem(
           tipo: stock.tipo,
           marca: stock.marca,
-          cantidad: 1,
-          precioUnitario: 85.0, // Precio base de ejemplo
+          qtyController: TextEditingController(text: '1'),
+          priceController: TextEditingController(text: '85.00'),
           maxDisponible: stock.disponible,
         ));
       }
     });
   }
 
-  double get total => cart.fold(0, (sum, item) => sum + (item.cantidad * item.precioUnitario));
+  double get total => cart.fold(0, (sum, item) {
+    final qty = double.tryParse(item.qtyController.text) ?? 0;
+    final price = double.tryParse(item.priceController.text) ?? 0;
+    return sum + (qty * price);
+  });
 
   Future<void> _save() async {
     if (selectedCliente == null) {
@@ -63,8 +68,8 @@ class _CreateWholesaleSaleScreenState extends ConsumerState<CreateWholesaleSaleS
         'detalles': cart.map((i) => {
           'tipo': i.tipo,
           'marca': i.marca,
-          'cantidad': i.cantidad,
-          'precio_unitario': i.precioUnitario,
+          'cantidad': int.tryParse(i.qtyController.text) ?? 0,
+          'precio_unitario': double.tryParse(i.priceController.text) ?? 0,
         }).toList(),
       });
       
@@ -159,7 +164,7 @@ class _CreateWholesaleSaleScreenState extends ConsumerState<CreateWholesaleSaleS
                   const SizedBox(height: 32),
 
                   // --- CARRITO ---
-                  const Text('🛒 DETALLE DE VENTA', style: TextStyle(color: AppTheme.textGray, fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 1.5)),
+                  const Text('🛒 DETALLE DE VENTA (EDICIÓN MANUAL)', style: TextStyle(color: AppTheme.textGray, fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 1.5)),
                   const SizedBox(height: 12),
                   if (cart.isEmpty)
                     const Center(child: Padding(
@@ -171,37 +176,50 @@ class _CreateWholesaleSaleScreenState extends ConsumerState<CreateWholesaleSaleS
                       margin: const EdgeInsets.only(bottom: 12),
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(color: AppTheme.surfaceDark, borderRadius: BorderRadius.circular(12)),
-                      child: Row(
+                      child: Column(
                         children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text('${item.tipo} ${item.marca}', style: const TextStyle(fontWeight: FontWeight.bold)),
-                                Text('S/ ${item.precioUnitario.toStringAsFixed(2)} c/u', style: const TextStyle(fontSize: 10, color: AppTheme.textGray)),
-                              ],
-                            ),
-                          ),
                           Row(
                             children: [
-                              IconButton(
-                                icon: const Icon(Icons.remove_circle_outline, color: Colors.white54),
-                                onPressed: () => setState(() {
-                                  if (item.cantidad > 1) item.cantidad--;
-                                  else cart.remove(item);
-                                }),
+                              Expanded(
+                                child: Text('${item.tipo} ${item.marca}', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
                               ),
-                              Text('${item.cantidad}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                               IconButton(
-                                icon: const Icon(Icons.add_circle_outline, color: AppTheme.accentOrange),
-                                onPressed: () => setState(() {
-                                  if (item.cantidad < item.maxDisponible) item.cantidad++;
-                                }),
+                                icon: const Icon(Icons.delete_outline, color: Colors.redAccent, size: 18),
+                                onPressed: () => setState(() => cart.remove(item)),
                               ),
                             ],
                           ),
-                          const SizedBox(width: 8),
-                          Text('S/ ${(item.cantidad * item.precioUnitario).toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.w900, color: Colors.greenAccent)),
+                          const SizedBox(height: 12),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: TextField(
+                                  controller: item.priceController,
+                                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                  style: const TextStyle(fontSize: 14, color: Colors.greenAccent, fontWeight: FontWeight.bold),
+                                  decoration: const InputDecoration(
+                                    labelText: 'PRECIO UNIT. (S/)',
+                                    labelStyle: TextStyle(fontSize: 10),
+                                    prefixText: 'S/ ',
+                                  ),
+                                  onChanged: (_) => setState(() {}),
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: TextField(
+                                  controller: item.qtyController,
+                                  keyboardType: TextInputType.number,
+                                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                                  decoration: const InputDecoration(
+                                    labelText: 'CANTIDAD',
+                                    labelStyle: TextStyle(fontSize: 10),
+                                  ),
+                                  onChanged: (_) => setState(() {}),
+                                ),
+                              ),
+                            ],
+                          ),
                         ],
                       ),
                     )),
@@ -257,15 +275,15 @@ class _CreateWholesaleSaleScreenState extends ConsumerState<CreateWholesaleSaleS
 class CartItem {
   final String tipo;
   final String marca;
-  int cantidad;
-  double precioUnitario;
-  int maxDisponible;
+  final TextEditingController qtyController;
+  final TextEditingController priceController;
+  final int maxDisponible;
 
   CartItem({
     required this.tipo,
     required this.marca,
-    required this.cantidad,
-    required this.precioUnitario,
+    required this.qtyController,
+    required this.priceController,
     required this.maxDisponible,
   });
 }

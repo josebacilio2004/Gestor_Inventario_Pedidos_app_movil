@@ -26,28 +26,43 @@ class _AccountStatementScreenState extends ConsumerState<AccountStatementScreen>
   
   @override
   Widget build(BuildContext context) {
-    final invoicesAsync = ref.watch(buyerInvoicesProvider({
-      'compradorId': widget.compradorId,
-      'distribuidorId': widget.distribuidorId,
-    }));
+    final providerKey = '${widget.compradorId}-${widget.distribuidorId}';
+    final invoicesAsync = ref.watch(buyerInvoicesProvider(providerKey));
 
     return Scaffold(
       backgroundColor: AppTheme.primaryDark,
       appBar: AppBar(
-        title: Text('ESTADO: ${widget.distribuidorNombre}', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14)),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('FACTURACIÓN: ${widget.distribuidorNombre}', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 13)),
+            const Text('Gestión de facturas y abonos', style: TextStyle(fontSize: 9, color: AppTheme.textGray)),
+          ],
+        ),
         backgroundColor: Colors.transparent,
       ),
       body: invoicesAsync.when(
         data: (invoices) => _buildContent(invoices),
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('Error: $e')),
+        loading: () => const Center(child: CircularProgressIndicator(color: AppTheme.accentOrange)),
+        error: (e, _) => Center(child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.error_outline, color: Colors.redAccent, size: 48),
+            const SizedBox(height: 16),
+            Text('Error: $e', style: const TextStyle(color: Colors.white70)),
+            TextButton(onPressed: () => ref.refresh(buyerInvoicesProvider(providerKey)), child: const Text('REINTENTAR')),
+          ],
+        )),
       ),
       floatingActionButton: selectedInvoices.isNotEmpty 
         ? FloatingActionButton.extended(
-            onPressed: () => _showAbonoDialog(invoicesAsync.asData!.value),
+            onPressed: () {
+              final data = ref.read(buyerInvoicesProvider(providerKey)).asData?.value;
+              if (data != null) _showAbonoDialog(data);
+            },
             backgroundColor: AppTheme.accentOrange,
-            icon: const Icon(Icons.payments_outlined),
-            label: const Text('ABONAR SELECCIONADAS', style: TextStyle(fontWeight: FontWeight.bold)),
+            icon: const Icon(Icons.payments_outlined, color: Colors.white),
+            label: Text('ABONAR (${selectedInvoices.length})', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
           )
         : null,
     );
@@ -141,16 +156,26 @@ class _AccountStatementScreenState extends ConsumerState<AccountStatementScreen>
 
   Widget _buildSummaryHeader(double debt, double paid) {
     return Container(
+      width: double.infinity,
       padding: const EdgeInsets.all(24),
       decoration: const BoxDecoration(
         color: AppTheme.surfaceDark,
         borderRadius: BorderRadius.vertical(bottom: Radius.circular(24))
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
+      child: Column(
         children: [
-          _summaryItem('DEUDA TOTAL', 'S/ ${debt.toStringAsFixed(2)}', Colors.redAccent),
-          _summaryItem('PAGADO', 'S/ ${paid.toStringAsFixed(2)}', Colors.greenAccent),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _summaryItem('DEUDA TOTAL', 'S/ ${debt.toStringAsFixed(2)}', Colors.redAccent),
+              _summaryItem('TOTAL ABONADO', 'S/ ${paid.toStringAsFixed(2)}', Colors.greenAccent),
+            ],
+          ),
+          const SizedBox(height: 16),
+          const Text('El comprador acumula dinero de sus ventas y lo abona progresivamente.', 
+            style: TextStyle(color: AppTheme.textGray, fontSize: 8, fontStyle: FontStyle.italic),
+            textAlign: TextAlign.center,
+          ),
         ],
       ),
     );
@@ -159,7 +184,7 @@ class _AccountStatementScreenState extends ConsumerState<AccountStatementScreen>
   Widget _summaryItem(String label, String value, Color color) {
     return Column(
       children: [
-        Text(label, style: const TextStyle(color: AppTheme.textGray, fontSize: 9, fontWeight: FontWeight.bold)),
+        Text(label, style: const TextStyle(color: AppTheme.textGray, fontSize: 9, fontWeight: FontWeight.bold, letterSpacing: 1)),
         const SizedBox(height: 4),
         Text(value, style: TextStyle(color: color, fontSize: 18, fontWeight: FontWeight.w900)),
       ],
@@ -219,10 +244,8 @@ class _AccountStatementScreenState extends ConsumerState<AccountStatementScreen>
                 resto -= abonoFact;
               }
 
-              ref.refresh(buyerInvoicesProvider({
-                'compradorId': widget.compradorId,
-                'distribuidorId': widget.distribuidorId,
-              }));
+              final providerKey = '${widget.compradorId}-${widget.distribuidorId}';
+              ref.refresh(buyerInvoicesProvider(providerKey));
               
               if (mounted) {
                 Navigator.pop(context);

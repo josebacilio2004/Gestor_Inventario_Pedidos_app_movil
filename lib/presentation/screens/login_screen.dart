@@ -99,10 +99,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       ),
       child: Column(
         children: [
-          Image.asset(
-            'assets/logo.png',
-            height: 80,
-            errorBuilder: (context, error, stackTrace) => const Icon(Icons.business, size: 60, color: AppTheme.accentOrange),
+          ColorFiltered(
+            colorFilter: const ColorFilter.matrix([
+              1, 0, 0, 0, 0,
+              0, 1, 0, 0, 0,
+              0, 0, 1, 0, 0,
+              -1, -1, -1, 1, 255,
+            ]),
+            child: Image.asset(
+              'assets/logo_premium.png',
+              height: 80,
+              errorBuilder: (context, error, stackTrace) => const Icon(Icons.business, size: 60, color: AppTheme.accentOrange),
+            ),
           ),
           const SizedBox(height: 24),
           const Text(

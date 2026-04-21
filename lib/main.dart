@@ -5,12 +5,16 @@ import 'package:gestor_invetarios_pedidos_app/core/theme/app_theme.dart';
 import 'package:gestor_invetarios_pedidos_app/presentation/screens/login_screen.dart';
 import 'package:gestor_invetarios_pedidos_app/firebase_options.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:gestor_invetarios_pedidos_app/core/services/notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
   // Inicialización de Localización para evitar errores de Intl en Web
   await initializeDateFormatting('es_PE', null);
+
+  // Inicializar Notificaciones Locales
+  await NotificationService().init();
   
   try {
     await Firebase.initializeApp(

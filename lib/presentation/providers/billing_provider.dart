@@ -10,8 +10,11 @@ final facturasCompradorProvider = FutureProvider.family<List<Map<String, dynamic
   return []; // Placeholder
 });
 
-// Usaremos un StateProvider para determinar qué facturas mostrar
-final buyerInvoicesProvider = FutureProvider.family<List<Map<String, dynamic>>, Map<String, int>>((ref, params) async {
+// Usaremos una cadena "compradorId-distribuidorId" como clave para asegurar igualdad de valor
+final buyerInvoicesProvider = FutureProvider.family<List<Map<String, dynamic>>, String>((ref, key) async {
   final api = ref.watch(apiServiceProvider);
-  return await api.getFacturasComprador(params['compradorId']!, distribuidorId: params['distribuidorId']);
+  final parts = key.split('-');
+  final compradorId = int.parse(parts[0]);
+  final distribuidorId = int.parse(parts[1]);
+  return await api.getFacturasComprador(compradorId, distribuidorId: distribuidorId);
 });

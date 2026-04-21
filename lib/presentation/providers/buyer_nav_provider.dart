@@ -6,6 +6,7 @@ enum BuyerSection {
   orders,
   invoicing,
   wholesaleSales,
+  myProducts,
 }
 
 final buyerNavProvider = StateProvider<BuyerSection>((ref) => BuyerSection.dashboard);

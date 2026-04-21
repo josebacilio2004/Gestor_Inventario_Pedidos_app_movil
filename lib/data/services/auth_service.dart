@@ -24,10 +24,16 @@ class AuthService {
       });
 
       // Guardar sesión básica (en producción se guardaría un JWT)
+      // Guardar sesión y token si existe
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('user_id', _currentUser!.id.toString());
       await prefs.setString('user_name', _currentUser!.nombre);
       await prefs.setString('user_role', userRole);
+      
+      // Si el backend devolvió un token, lo guardamos para el ApiService interceptor
+      if (userData['token'] != null) {
+        await prefs.setString('auth_token', userData['token']);
+      }
 
       return _currentUser;
     } catch (e) {

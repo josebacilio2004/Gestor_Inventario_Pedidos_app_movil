@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:gestor_invetarios_pedidos_app/core/theme/app_theme.dart';
 import 'package:gestor_invetarios_pedidos_app/presentation/providers/auth_provider.dart';
 import 'package:gestor_invetarios_pedidos_app/presentation/providers/investor_nav_provider.dart';
@@ -22,26 +23,35 @@ class DashboardScreen extends ConsumerWidget {
       return const LoginScreen();
     }
 
+    final profile = {'id': user.id, 'nombre': user.nombre, 'usuario': user.usuario, 'rol': user.rol};
+
     return Scaffold(
       backgroundColor: AppTheme.primaryDark,
-      drawer: _buildRoleAwareDrawer(context, ref),
+      drawer: _buildDrawer(context, ref, profile),
       appBar: AppBar(
         title: Row(
           children: [
-            Image.asset(
-              'assets/logo.png',
-              height: 24,
-              errorBuilder: (context, error, stackTrace) => const Icon(Icons.business, color: AppTheme.accentOrange),
+            ColorFiltered(
+              colorFilter: const ColorFilter.matrix([
+                1, 0, 0, 0, 0,
+                0, 1, 0, 0, 0,
+                0, 0, 1, 0, 0,
+                -1, -1, -1, 1, 255,
+              ]),
+              child: Image.asset(
+                'assets/logo_premium.png',
+                height: 24,
+                errorBuilder: (context, error, stackTrace) => const Icon(Icons.business, color: AppTheme.accentOrange),
+              ),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: 12),
             Text(
-              'COMERCIALIZADORA ALY',
-              style: TextStyle(
-                fontSize: 12,
+              'ALY INDUSTRIAL',
+              style: GoogleFonts.outfit(
+                fontSize: 14,
                 fontWeight: FontWeight.w900,
-                fontStyle: FontStyle.italic,
                 letterSpacing: 1,
-                color: Colors.white.withOpacity(0.9),
+                color: Colors.white,
               ),
             ),
           ],
@@ -62,10 +72,8 @@ class DashboardScreen extends ConsumerWidget {
   }
 
   Widget _buildDashboardSelector(BuildContext context, Usuario user, WidgetRef ref) {
-    final String role = user.rol.toLowerCase();
-    
-    // Nombres completos personalizados
     String username = user.nombre;
+    final role = user.rol.toLowerCase();
     if (role == 'inversionista') {
       username = 'Ssamira Xiomara Checya Peña';
     } else if (role == 'comprador') {
@@ -74,17 +82,15 @@ class DashboardScreen extends ConsumerWidget {
 
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
       child: Center(
         child: Container(
-          constraints: const BoxConstraints(maxWidth: 600),
+          constraints: const BoxConstraints(maxWidth: 800),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _buildHeader(username, role),
               const SizedBox(height: 32),
-              
-              // Switch de Dashboards por Rol
               _getDashboardWidget(user, ref),
             ],
           ),
@@ -94,20 +100,13 @@ class DashboardScreen extends ConsumerWidget {
   }
 
   Widget _getDashboardWidget(Usuario user, WidgetRef ref) {
-    final String role = user.rol.toLowerCase();
     final profile = {'id': user.id, 'nombre': user.nombre, 'rol': user.rol};
-    
-    switch (role) {
-      case 'admin':
-        return AdminDashboard(profile: profile);
-      case 'operador':
-        return OperatorDashboard(profile: profile);
-      case 'comprador':
-        return BuyerDashboard(profile: profile);
-      case 'inversionista':
-        return InvestorDashboard(profile: profile);
-      default:
-        return OperatorDashboard(profile: profile);
+    switch (user.rol.toLowerCase()) {
+      case 'admin': return AdminDashboard(profile: profile);
+      case 'operador': return OperatorDashboard(profile: profile);
+      case 'comprador': return BuyerDashboard(profile: profile);
+      case 'inversionista': return InvestorDashboard(profile: profile);
+      default: return OperatorDashboard(profile: profile);
     }
   }
 
@@ -115,27 +114,23 @@ class DashboardScreen extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-              decoration: BoxDecoration(
-                color: AppTheme.accentOrange.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(4),
-                border: Border.all(color: AppTheme.accentOrange.withOpacity(0.2)),
-              ),
-              child: Text(
-                role.toUpperCase(),
-                style: const TextStyle(color: AppTheme.accentOrange, fontSize: 8, fontWeight: FontWeight.w900, letterSpacing: 1),
-              ),
-            ),
-          ],
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+          decoration: BoxDecoration(
+            color: AppTheme.accentOrange.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(6),
+            border: Border.all(color: AppTheme.accentOrange.withOpacity(0.2)),
+          ),
+          child: Text(
+            role.toUpperCase(),
+            style: const TextStyle(color: AppTheme.accentOrange, fontSize: 9, fontWeight: FontWeight.w900, letterSpacing: 1),
+          ),
         ),
         const SizedBox(height: 12),
         Text(
           name,
-          style: const TextStyle(
-            fontSize: 22,
+          style: GoogleFonts.outfit(
+            fontSize: 24,
             fontWeight: FontWeight.w900,
             color: Colors.white,
             letterSpacing: -0.5,
@@ -149,139 +144,110 @@ class DashboardScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildRoleAwareDrawer(BuildContext context, WidgetRef ref) {
-    final user = ref.watch(authStateProvider);
-    final String role = user?.rol.toLowerCase() ?? '';
+  Widget _buildDrawer(BuildContext context, WidgetRef ref, Map<String, dynamic> profile) {
+    final buyerSection = ref.watch(buyerNavProvider);
+    final investorSection = ref.watch(investorNavProvider);
+    final String role = profile['rol']?.toString().toLowerCase() ?? 'comprador';
 
-    if (role == 'inversionista') {
-      return _buildInvestorDrawer(context, ref);
-    } else if (role == 'comprador') {
-      return _buildBuyerDrawer(context, ref);
-    }
-
-    return _buildGenericDrawer(context, ref);
-  }
-
-  Widget _buildInvestorDrawer(BuildContext context, WidgetRef ref) {
     return Drawer(
       backgroundColor: AppTheme.primaryDark,
       child: Column(
         children: [
-          _drawerHeader('Ssamira Xiomara Checya Peña', 'Inversionista Principal'),
-          Expanded(
-            child: ListView(
-              padding: EdgeInsets.zero,
-              children: [
-                _investorDrawerItem(ref, InvestorSection.inventoryManager, 'Gestor de Inventario', Icons.storefront_outlined),
-                _investorDrawerItem(ref, InvestorSection.dashboard, 'Mi Dashboard', Icons.home_outlined),
-                _investorDrawerItem(ref, InvestorSection.products, 'Productos', Icons.inventory_2_outlined),
-                _investorDrawerItem(ref, InvestorSection.distributors, 'Distribuidores', Icons.factory_outlined),
-                _investorDrawerItem(ref, InvestorSection.orders, 'Mis Pedidos', Icons.assignment_outlined),
-                _investorDrawerItem(ref, InvestorSection.buyers, 'Compradores', Icons.shopping_cart_outlined),
-                const Divider(color: Colors.white10, height: 40),
-                _logoutItem(context, ref),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildBuyerDrawer(BuildContext context, WidgetRef ref) {
-    return Drawer(
-      backgroundColor: AppTheme.primaryDark,
-      child: Column(
-        children: [
-          _drawerHeader('Alicia Peña Granilla', 'Comprador Principal'),
-          Expanded(
-            child: ListView(
-              padding: EdgeInsets.zero,
-              children: [
-                _buyerDrawerItem(ref, BuyerSection.inventoryManager, 'Gestor de Inventario', Icons.storefront_outlined),
-                _buyerDrawerItem(ref, BuyerSection.dashboard, 'Mi Dashboard', Icons.home_outlined),
-                _buyerDrawerItem(ref, BuyerSection.orders, 'Mis Pedidos', Icons.assignment_outlined),
-                _buyerDrawerItem(ref, BuyerSection.invoicing, 'Facturaciones', Icons.description_outlined),
-                _buyerDrawerItem(ref, BuyerSection.wholesaleSales, 'Ventas Mayoristas', Icons.inventory_outlined),
-                const Divider(color: Colors.white10, height: 40),
-                _logoutItem(context, ref),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildGenericDrawer(BuildContext context, WidgetRef ref) {
-    return Drawer(
-      backgroundColor: AppTheme.primaryDark,
-      child: Column(
-        children: [
-          const DrawerHeader(
-            decoration: BoxDecoration(color: AppTheme.surfaceDark),
-            child: Center(
-              child: Text(
-                'ALY INDUSTRIAL',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900, fontStyle: FontStyle.italic, color: AppTheme.accentOrange),
+          Container(
+            padding: const EdgeInsets.fromLTRB(24, 80, 24, 40),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [AppTheme.accentOrange.withOpacity(0.1), AppTheme.primaryDark],
               ),
             ),
+            child: Column(
+              children: [
+                ColorFiltered(
+                  colorFilter: const ColorFilter.matrix([
+                    1, 0, 0, 0, 0,
+                    0, 1, 0, 0, 0,
+                    0, 0, 1, 0, 0,
+                    -1, -1, -1, 1, 255,
+                  ]),
+                  child: Image.asset('assets/logo_premium.png', height: 70),
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  'COMERCIALIZADORA ALY',
+                  style: GoogleFonts.outfit(fontSize: 14, fontWeight: FontWeight.w900, letterSpacing: 2, color: Colors.white),
+                ),
+              ],
+            ),
           ),
-          _logoutItem(context, ref),
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              children: [
+                if (role == 'comprador') ...[
+                  _drawerItem(ref, BuyerSection.dashboard, 'DASHBOARD', Icons.grid_view_rounded, buyerSection == BuyerSection.dashboard),
+                  _drawerItem(ref, BuyerSection.orders, 'GESTIÓN DE PEDIDOS', Icons.assignment_rounded, buyerSection == BuyerSection.orders),
+                  _drawerItem(ref, BuyerSection.myProducts, 'MIS PRODUCTOS', Icons.inventory_2_rounded, buyerSection == BuyerSection.myProducts),
+                  _drawerItem(ref, BuyerSection.invoicing, 'FACTURACIÓN', Icons.account_balance_wallet_rounded, buyerSection == BuyerSection.invoicing),
+                  _drawerItem(ref, BuyerSection.wholesaleSales, 'VENTAS MAYORISTAS', Icons.shopping_cart_rounded, buyerSection == BuyerSection.wholesaleSales),
+                ] else if (role == 'inversionista') ...[
+                  _drawerItem(ref, InvestorSection.dashboard, 'DASHBOARD', Icons.dashboard_rounded, investorSection == InvestorSection.dashboard),
+                  _drawerItem(ref, InvestorSection.orders, 'MIS INVERSIONES', Icons.monetization_on_rounded, investorSection == InvestorSection.orders),
+                  _drawerItem(ref, InvestorSection.products, 'PRODUCTOS', Icons.category_rounded, investorSection == InvestorSection.products),
+                  _drawerItem(ref, InvestorSection.distributors, 'DISTRIBUIDORES', Icons.business_rounded, investorSection == InvestorSection.distributors),
+                  _drawerItem(ref, InvestorSection.buyers, 'COMPRADORES', Icons.people_rounded, investorSection == InvestorSection.buyers),
+                ],
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(24),
+            child: ElevatedButton(
+              onPressed: () {
+                ref.read(authServiceProvider).signOut();
+                ref.read(authStateProvider.notifier).state = null;
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.redAccent.withOpacity(0.1),
+                foregroundColor: Colors.redAccent,
+                minimumSize: const Size(double.infinity, 50),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  side: const BorderSide(color: Colors.redAccent, width: 1),
+                ),
+              ),
+              child: const Text('CERRAR SESIÓN'),
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _drawerHeader(String name, String subtitle) {
-    return UserAccountsDrawerHeader(
-      decoration: const BoxDecoration(
-        color: AppTheme.surfaceDark,
-        image: DecorationImage(
-          image: NetworkImage('https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&q=80&w=300'),
-          fit: BoxFit.cover,
-          opacity: 0.1,
+  Widget _drawerItem(WidgetRef ref, dynamic section, String label, IconData icon, bool isSelected) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      decoration: BoxDecoration(
+        color: isSelected ? AppTheme.accentOrange.withOpacity(0.1) : Colors.transparent,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: ListTile(
+        leading: Icon(icon, color: isSelected ? AppTheme.accentOrange : AppTheme.textGray, size: 20),
+        title: Text(
+          label,
+          style: GoogleFonts.outfit(
+            fontSize: 12,
+            fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+            color: isSelected ? Colors.white : AppTheme.textGray,
+          ),
         ),
+        onTap: () {
+          if (section is BuyerSection) ref.read(buyerNavProvider.notifier).state = section;
+          if (section is InvestorSection) ref.read(investorNavProvider.notifier).state = section;
+          Navigator.pop(ref.context);
+        },
       ),
-      currentAccountPicture: CircleAvatar(
-        backgroundColor: Colors.white10,
-        child: Image.asset('assets/logo.png', height: 40),
-      ),
-      accountName: Text(name, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 13)),
-      accountEmail: Text(subtitle, style: const TextStyle(color: AppTheme.textGray, fontSize: 10)),
-    );
-  }
-
-  Widget _investorDrawerItem(WidgetRef ref, InvestorSection section, String label, IconData icon) {
-    final isSelected = ref.watch(investorNavProvider) == section;
-    return ListTile(
-      leading: Icon(icon, color: isSelected ? AppTheme.accentOrange : AppTheme.textGray),
-      title: Text(label, style: TextStyle(color: isSelected ? Colors.white : AppTheme.textGray, fontWeight: isSelected ? FontWeight.w900 : FontWeight.normal)),
-      selected: isSelected,
-      onTap: () => ref.read(investorNavProvider.notifier).state = section,
-    );
-  }
-
-  Widget _buyerDrawerItem(WidgetRef ref, BuyerSection section, String label, IconData icon) {
-    final isSelected = ref.watch(buyerNavProvider) == section;
-    return ListTile(
-      leading: Icon(icon, color: isSelected ? AppTheme.accentOrange : AppTheme.textGray),
-      title: Text(label, style: TextStyle(color: isSelected ? Colors.white : AppTheme.textGray, fontWeight: isSelected ? FontWeight.w900 : FontWeight.normal)),
-      selected: isSelected,
-      onTap: () {
-        ref.read(buyerNavProvider.notifier).state = section;
-      },
-    );
-  }
-
-  Widget _logoutItem(BuildContext context, WidgetRef ref) {
-    return ListTile(
-      leading: const Icon(Icons.logout_rounded, color: Colors.redAccent),
-      title: const Text('Salir', style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold)),
-      onTap: () {
-        ref.read(authServiceProvider).signOut();
-        Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (c) => const LoginScreen()), (route) => false);
-      },
     );
   }
 }
